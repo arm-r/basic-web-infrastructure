@@ -43,7 +43,7 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: 22
           script: |
-            docker ps
+            docker stop $(docker ps | grep -i 5000 | awk '{print $1}')
             docker rmi --force adirah/learning:latest
             docker pull adirah/learning:latest
             docker run -p 5000:80 -d adirah/learning:latest
