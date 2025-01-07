@@ -1,4 +1,4 @@
-name: Build and Push Docker Image to Docker Hub
+name: Staging Web Deploy
 
 on: 
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
         required: true
 
 jobs:
-  push_to_registry:
+  build_push_to_registry:
     name: push docker image to hub
     runs-on: ubuntu-latest
     steps:
@@ -28,4 +28,21 @@ jobs:
         with:
           context: .
           push: true
-          tags: adirah/learning:${{ github.event.inputs.tags }}
+          tags: adirah/learning:${{ github.event.inputs.tags }} , adirah/learning:latest
+
+  deploy_to_vps:
+    name: deploy to vps
+    runs-on: ubuntu-latest
+    steps:
+      - name: ssh to vps
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          script: |
+            docker ps
+            docker rmi --force adirah/learning:latest
+            docker pull adirah/learning:latest
+            docker run -p 5000:80 adirah/learning:latest
