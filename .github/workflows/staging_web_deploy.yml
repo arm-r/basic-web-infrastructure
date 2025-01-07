@@ -1,0 +1,31 @@
+name: Build and Push Docker Image to Docker Hub
+
+on: 
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: 'Tag Name (ex : v0.0.1)'
+        required: true
+
+jobs:
+  push_to_registry:
+    name: push docker image to hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: check repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tags }}
+
+      - name: login to docker registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: build and push docker image to registry
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: adirah/learning:${{ github.event.inputs.tags }}
