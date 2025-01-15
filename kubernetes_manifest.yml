@@ -15,7 +15,7 @@ spec:
        app: adi-web
    spec:
      containers:
-     - name: nginx-container
+     - name: web-container
        image: adirah/learning:latest
        resources:
          limits:
