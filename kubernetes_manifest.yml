@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name:  adi-web-deployment
+ labels:
+   name:  adi-web-deployment
+spec:
+ replicas: 2
+ selector:
+   matchLabels:
+     app: adi-web
+ template:
+   metadata:
+     labels:
+       app: adi-web
+   spec:
+     containers:
+     - name: web-container
+       image: adirah/learning:latest
+       resources:
+         limits:
+           memory: "128Mi"
+           cpu: "200m"
+       ports:
+         - containerPort: 80
+
+---
+         
+kind: Service
+apiVersion: v1
+metadata:
+  name: adi-web-service
+spec:
+  selector:
+    app: adi-web
+  ports:
+    - port: 80
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: adi-web-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/limit-rps: "10"
+    nginx.ingress.kubernetes.io/configuration-snippet: |   
+      add_header X-Frame-Options "sameorigin";
+      add_header X-Content-Type-Options nosniff;
+      add_header Referrer-Policy 'same-origin';
+    cert-manager.io/cluster-issuer: "letsencrypt"    
+spec:
+  ingressClassName: public-nginx
+  tls:
+  - hosts:
+      - ar.test.net
+    secretName: adi-web-tls
+  rules:
+  - host: ar.test.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: adi-web-service
+            port:
+              number: 80
